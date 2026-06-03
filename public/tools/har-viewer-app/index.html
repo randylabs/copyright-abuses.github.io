@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>HAR Viewer | copyright-abuses.com</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+  <style>
+    :root {
+      --rl-blue: #0066ff;
+      --slate-900: #0f172a;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-400: #94a3b8;
+      --slate-300: #cbd5e1;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --bg: #ffffff;
+      --bg-alt: #fafbfc;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--slate-900);
+      background: var(--bg);
+      font-size: 14px;
+    }
+    body { display: flex; flex-direction: column; }
+    code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* DROP ZONE */
+    #drop {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px;
+      background: var(--bg-alt);
+    }
+    #drop.dragover .dz-inner {
+      border-color: var(--rl-blue);
+      background: rgba(0,102,255,0.04);
+    }
+    .dz-inner {
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+      padding: 64px 32px;
+      border: 2px dashed var(--slate-300);
+      border-radius: 20px;
+      background: var(--bg);
+      transition: all 0.15s ease;
+    }
+    .dz-title { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin: 0 0 8px; }
+    .dz-sub { font-size: 13px; color: var(--slate-500); margin: 0 0 24px; }
+    .btn {
+      display: inline-block;
+      background: var(--slate-900);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 0;
+      font-family: inherit;
+    }
+    .btn:hover { background: #1e293b; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--slate-700);
+      border: 1px solid var(--slate-200);
+    }
+    .btn-ghost:hover { border-color: var(--slate-400); color: var(--slate-900); background: var(--bg); }
+    #file-input { display: none; }
+    .dz-foot { font-size: 11px; color: var(--slate-400); margin-top: 16px; }
+    .err {
+      max-width: 560px;
+      margin: 16px auto 0;
+      padding: 12px 14px;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+      border-radius: 10px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    /* TOOLBAR */
+    #app { display: none; flex: 1; min-height: 0; flex-direction: column; }
+    #app.active { display: flex; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--slate-200);
+      background: var(--bg-alt);
+    }
+    .filters { display: flex; gap: 4px; flex-wrap: wrap; }
+    .filter-btn {
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--slate-200);
+      background: var(--bg);
+      color: var(--slate-500);
+      cursor: pointer;
+    }
+    .filter-btn:hover { border-color: var(--slate-300); color: var(--slate-700); }
+    .filter-btn.active {
+      background: var(--rl-blue);
+      border-color: var(--rl-blue);
+      color: #fff;
+    }
+    .search {
+      flex: 1;
+      min-width: 180px;
+      padding: 6px 10px;
+      border: 1px solid var(--slate-200);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      color: var(--slate-900);
+      background: var(--bg);
+    }
+    .search:focus { outline: none; border-color: var(--rl-blue); }
+    .summary { font-size: 11px; color: var(--slate-500); margin-left: auto; }
+
+    /* SPLIT */
+    .split { flex: 1; display: flex; min-height: 0; }
+    .list-pane { flex: 1; min-width: 0; overflow: auto; }
+    .detail-pane {
+      width: 38%;
+      min-width: 320px;
+      border-left: 1px solid var(--slate-200);
+      background: var(--bg-alt);
+      display: none;
+      overflow: auto;
+    }
+    .detail-pane.active { display: block; }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-alt);
+      border-bottom: 1px solid var(--slate-200);
+      text-align: left;
+      font-weight: 600;
+      color: var(--slate-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 10px;
+      padding: 8px 12px;
+      white-space: nowrap;
+      z-index: 1;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--slate-100);
+      cursor: pointer;
+    }
+    tbody tr:hover { background: var(--slate-50); }
+    tbody tr.selected { background: rgba(0,102,255,0.06); }
+    tbody td { padding: 7px 12px; vertical-align: middle; }
+    .col-method { width: 55px; font-weight: 700; font-size: 11px; }
+    .col-status { width: 60px; font-weight: 600; }
+    .col-type { width: 70px; color: var(--slate-500); font-size: 11px; }
+    .col-url { color: var(--slate-700); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .col-size, .col-time { width: 70px; text-align: right; color: var(--slate-500); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .status-2xx { color: var(--green); }
+    .status-3xx { color: var(--amber); }
+    .status-4xx, .status-5xx, .status-err { color: var(--red); }
+
+    /* DETAIL */
+    .detail-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--slate-200);
+      background: var(--bg);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .detail-head .url {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      word-break: break-all;
+      color: var(--slate-900);
+      flex: 1;
+    }
+    .close-btn {
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      color: var(--slate-400);
+      font-size: 18px;
+      padding: 0 4px;
+      font-family: inherit;
+    }
+    .close-btn:hover { color: var(--slate-700); }
+    .detail-section { padding: 14px 16px; border-bottom: 1px solid var(--slate-200); }
+    .detail-section h3 {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--slate-500);
+      margin: 0 0 10px;
+      font-weight: 700;
+    }
+    .kv { display: grid; grid-template-columns: minmax(0, 1fr) 2fr; row-gap: 4px; column-gap: 12px; font-size: 11.5px; }
+    .kv .k { color: var(--slate-500); font-weight: 500; word-break: break-word; }
+    .kv .v { color: var(--slate-900); font-family: 'JetBrains Mono', ui-monospace, monospace; word-break: break-word; }
+    .body-pre {
+      margin: 0;
+      padding: 10px 12px;
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 11px;
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--slate-700);
+    }
+    .timings { display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
+    .timings .row { display: flex; align-items: center; gap: 8px; }
+    .timings .label { width: 80px; color: var(--slate-500); }
+    .timings .bar { flex: 1; height: 6px; background: var(--slate-100); border-radius: 3px; position: relative; overflow: hidden; }
+    .timings .bar > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--rl-blue); border-radius: 3px; }
+    .timings .ms { width: 60px; text-align: right; color: var(--slate-700); font-variant-numeric: tabular-nums; }
+
+    .empty { padding: 60px 24px; text-align: center; color: var(--slate-500); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+  <!-- DROP / SELECT SCREEN -->
+  <div id="drop">
+    <div class="dz-inner">
+      <h1 class="dz-title">Drop a .har file</h1>
+      <p class="dz-sub">Or pick one from your machine. The file is parsed locally and never leaves your browser.</p>
+      <button class="btn" id="pick-btn" type="button">Choose file</button>
+      <input id="file-input" type="file" accept=".har,application/json" />
+      <div class="dz-foot">HAR (HTTP Archive) format, version 1.2</div>
+      <div id="err" class="err" hidden></div>
+    </div>
+  </div>
+
+  <!-- VIEWER -->
+  <div id="app">
+    <div class="toolbar">
+      <div class="filters" id="type-filters"></div>
+      <input id="search" class="search" placeholder="Filter by URL or status" />
+      <span class="summary" id="summary"></span>
+      <button class="btn btn-ghost" id="reset-btn" type="button">Load another</button>
+    </div>
+    <div class="split">
+      <div class="list-pane">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-method">Method</th>
+              <th class="col-status">Status</th>
+              <th class="col-type">Type</th>
+              <th class="col-url">URL</th>
+              <th class="col-size">Size</th>
+              <th class="col-time">Time</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty-state" class="empty" hidden>No requests match the current filter.</div>
+      </div>
+      <aside class="detail-pane" id="detail">
+        <!-- populated by JS -->
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // ---------- HAR Viewer (vanilla JS) ----------
+    // No dependencies. Renders the contents of an HTTP Archive (.har) file.
+    // Spec: http://www.softwareishard.com/blog/har-12-spec/
+    (function () {
+      'use strict';
+
+      const TYPE_BUCKETS = ['All', 'XHR', 'JS', 'CSS', 'Img', 'Font', 'Doc', 'Media', 'Other'];
+
+      let entries = [];   // raw HAR entries
+      let filtered = [];  // after type+search filter
+      let activeType = 'All';
+      let searchTerm = '';
+      let selected = -1;
+
+      const $ = (id) => document.getElementById(id);
+      const drop = $('drop');
+      const app = $('app');
+      const fileInput = $('file-input');
+      const pickBtn = $('pick-btn');
+      const errBox = $('err');
+      const rowsEl = $('rows');
+      const detailEl = $('detail');
+      const summaryEl = $('summary');
+      const filtersEl = $('type-filters');
+      const searchEl = $('search');
+      const emptyEl = $('empty-state');
+      const resetBtn = $('reset-btn');
+
+      // ---------- file loading ----------
+      pickBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (f) loadFile(f);
+      });
+      ['dragenter', 'dragover'].forEach(ev =>
+        drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('dragover'); }));
+      ['dragleave', 'drop'].forEach(ev =>
+        drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('dragover'); }));
+      drop.addEventListener('drop', (e) => {
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) loadFile(f);
+      });
+      resetBtn.addEventListener('click', () => {
+        entries = []; selected = -1; activeType = 'All'; searchTerm = '';
+        searchEl.value = ''; fileInput.value = '';
+        app.classList.remove('active'); drop.style.display = 'flex';
+        errBox.hidden = true;
+      });
+
+      function showError(msg) {
+        errBox.textContent = msg;
+        errBox.hidden = false;
+      }
+
+      function loadFile(file) {
+        errBox.hidden = true;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const json = JSON.parse(reader.result);
+            const log = json && json.log;
+            if (!log || !Array.isArray(log.entries)) {
+              throw new Error('Not a HAR file: missing log.entries');
+            }
+            entries = log.entries;
+            selected = -1;
+            renderFilters();
+            applyFilter();
+            drop.style.display = 'none';
+            app.classList.add('active');
+          } catch (e) {
+            showError('Could not parse HAR: ' + e.message);
+          }
+        };
+        reader.onerror = () => showError('Could not read file');
+        reader.readAsText(file);
+      }
+
+      // ---------- categorize ----------
+      function categorize(entry) {
+        const mime = (entry.response && entry.response.content && entry.response.content.mimeType) || '';
+        const url = (entry.request && entry.request.url) || '';
+        const ext = (url.split('?')[0].match(/\.[a-zA-Z0-9]+$/) || [''])[0].toLowerCase();
+        if (/json|xml|graphql/.test(mime) || /\/api\/|\/v\d+\//.test(url)) return 'XHR';
+        if (/javascript|ecmascript/.test(mime) || ext === '.js' || ext === '.mjs') return 'JS';
+        if (/css/.test(mime) || ext === '.css') return 'CSS';
+        if (/image\//.test(mime) || /\.(png|jpe?g|gif|webp|svg|ico|avif)$/.test(ext)) return 'Img';
+        if (/font/.test(mime) || /\.(woff2?|ttf|otf|eot)$/.test(ext)) return 'Font';
+        if (/^text\/html/.test(mime) || /\.html?$/.test(ext)) return 'Doc';
+        if (/audio|video/.test(mime) || /\.(mp[34]|webm|ogg|wav|m3u8|ts)$/.test(ext)) return 'Media';
+        return 'Other';
+      }
+
+      // ---------- filtering ----------
+      function applyFilter() {
+        const term = searchTerm.toLowerCase();
+        filtered = entries
+          .map((e, idx) => ({ ...e, _idx: idx, _type: categorize(e) }))
+          .filter(e => activeType === 'All' || e._type === activeType)
+          .filter(e => {
+            if (!term) return true;
+            const url = (e.request && e.request.url || '').toLowerCase();
+            const status = String(e.response && e.response.status || '');
+            return url.includes(term) || status.includes(term);
+          });
+        renderRows();
+        renderSummary();
+      }
+
+      // ---------- rendering ----------
+      function renderFilters() {
+        filtersEl.innerHTML = '';
+        TYPE_BUCKETS.forEach(t => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'filter-btn' + (t === activeType ? ' active' : '');
+          btn.textContent = t;
+          btn.addEventListener('click', () => {
+            activeType = t;
+            for (const c of filtersEl.children) c.classList.toggle('active', c.textContent === t);
+            applyFilter();
+          });
+          filtersEl.appendChild(btn);
+        });
+      }
+
+      function statusClass(s) {
+        if (!s || s === 0) return 'status-err';
+        if (s >= 500) return 'status-5xx';
+        if (s >= 400) return 'status-4xx';
+        if (s >= 300) return 'status-3xx';
+        if (s >= 200) return 'status-2xx';
+        return '';
+      }
+
+      function fmtSize(b) {
+        if (!b || b < 0) return '—';
+        if (b < 1024) return b + ' B';
+        if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' kB';
+        return (b / 1024 / 1024).toFixed(2) + ' MB';
+      }
+      function fmtMs(ms) {
+        if (ms == null || ms < 0) return '—';
+        if (ms < 1000) return Math.round(ms) + ' ms';
+        return (ms / 1000).toFixed(2) + ' s';
+      }
+
+      function renderRows() {
+        rowsEl.innerHTML = '';
+        if (filtered.length === 0) {
+          emptyEl.hidden = false;
+          return;
+        }
+        emptyEl.hidden = true;
+        const frag = document.createDocumentFragment();
+        filtered.forEach(e => {
+          const tr = document.createElement('tr');
+          if (e._idx === selected) tr.classList.add('selected');
+          tr.dataset.idx = String(e._idx);
+
+          const req = e.request || {};
+          const res = e.response || {};
+          const size = res.bodySize > 0 ? res.bodySize : (res.content && res.content.size) || 0;
+
+          tr.innerHTML =
+            '<td class="col-method">' + escapeHtml(req.method || '') + '</td>' +
+            '<td class="col-status ' + statusClass(res.status) + '">' + (res.status || 'err') + '</td>' +
+            '<td class="col-type">' + e._type + '</td>' +
+            '<td class="col-url" title="' + escapeAttr(req.url || '') + '">' + escapeHtml(req.url || '') + '</td>' +
+            '<td class="col-size">' + fmtSize(size) + '</td>' +
+            '<td class="col-time">' + fmtMs(e.time) + '</td>';
+
+          tr.addEventListener('click', () => selectRow(e._idx));
+          frag.appendChild(tr);
+        });
+        rowsEl.appendChild(frag);
+      }
+
+      function renderSummary() {
+        const totalSize = filtered.reduce((s, e) => {
+          const r = e.response || {};
+          return s + (r.bodySize > 0 ? r.bodySize : (r.content && r.content.size) || 0);
+        }, 0);
+        const totalTime = filtered.reduce((s, e) => s + (e.time > 0 ? e.time : 0), 0);
+        summaryEl.textContent =
+          filtered.length + ' / ' + entries.length + ' requests · ' +
+          fmtSize(totalSize) + ' · ' + fmtMs(totalTime);
+      }
+
+      // ---------- detail panel ----------
+      function selectRow(idx) {
+        selected = idx;
+        for (const tr of rowsEl.children) {
+          tr.classList.toggle('selected', Number(tr.dataset.idx) === idx);
+        }
+        renderDetail(entries[idx]);
+        detailEl.classList.add('active');
+      }
+
+      function renderDetail(e) {
+        const req = e.request || {};
+        const res = e.response || {};
+        const reqHeaders = req.headers || [];
+        const resHeaders = res.headers || [];
+        const body = res.content || {};
+        const t = e.timings || {};
+
+        const headerRows = (hs) =>
+          hs.map(h => '<div class="k">' + escapeHtml(h.name) + '</div><div class="v">' + escapeHtml(h.value) + '</div>').join('');
+
+        const ks = ['blocked', 'dns', 'connect', 'ssl', 'send', 'wait', 'receive'];
+        const max = Math.max.apply(null, ks.map(k => Math.max(0, t[k] || 0)).concat([1]));
+        const timingRows = ks.filter(k => t[k] > 0).map(k =>
+          '<div class="row">' +
+            '<span class="label">' + k + '</span>' +
+            '<span class="bar"><i style="width:' + (100 * (t[k] / max)).toFixed(1) + '%"></i></span>' +
+            '<span class="ms">' + fmtMs(t[k]) + '</span>' +
+          '</div>'
+        ).join('');
+
+        let bodyText = '';
+        if (body.text) {
+          bodyText = body.encoding === 'base64'
+            ? '[base64 body, ' + (body.size || 0) + ' bytes]'
+            : body.text.slice(0, 4000) + (body.text.length > 4000 ? '\n… (truncated)' : '');
+        } else {
+          bodyText = '[no body captured]';
+        }
+
+        detailEl.innerHTML =
+          '<div class="detail-head">' +
+            '<div class="url">' + escapeHtml(req.method || '') + ' ' + escapeHtml(req.url || '') + '</div>' +
+            '<button class="close-btn" type="button" aria-label="Close" id="close-detail">×</button>' +
+          '</div>' +
+          '<div class="detail-section">' +
+            '<h3>Status</h3>' +
+            '<div class="kv">' +
+              '<div class="k">Status</div><div class="v ' + statusClass(res.status) + '">' + (res.status || 'err') + ' ' + escapeHtml(res.statusText || '') + '</div>' +
+              '<div class="k">MIME</div><div class="v">' + escapeHtml(body.mimeType || '—') + '</div>' +
+              '<div class="k">Size</div><div class="v">' + fmtSize(res.bodySize > 0 ? res.bodySize : (body.size || 0)) + '</div>' +
+              '<div class="k">Total time</div><div class="v">' + fmtMs(e.time) + '</div>' +
+            '</div>' +
+          '</div>' +
+          (timingRows ? '<div class="detail-section"><h3>Timings</h3><div class="timings">' + timingRows + '</div></div>' : '') +
+          '<div class="detail-section">' +
+            '<h3>Request headers (' + reqHeaders.length + ')</h3>' +
+            '<div class="kv">' + headerRows(reqHeaders) + '</div>' +
+          '</div>' +
+          '<div class="detail-section">' +
+            '<h3>Response headers (' + resHeaders.length + ')</h3>' +
+            '<div class="kv">' + headerRows(resHeaders) + '</div>' +
+          '</div>' +
+          '<div class="detail-section">' +
+            '<h3>Response body</h3>' +
+            '<pre class="body-pre">' + escapeHtml(bodyText) + '</pre>' +
+          '</div>';
+
+        document.getElementById('close-detail').addEventListener('click', () => {
+          detailEl.classList.remove('active');
+          selected = -1;
+          for (const tr of rowsEl.children) tr.classList.remove('selected');
+        });
+      }
+
+      // ---------- search ----------
+      let searchTimer;
+      searchEl.addEventListener('input', (e) => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          searchTerm = e.target.value || '';
+          applyFilter();
+        }, 100);
+      });
+
+      // ---------- helpers ----------
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+      function escapeAttr(s) { return escapeHtml(s); }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+# copyright-abuses.com
+
+> Documentation of the authorization, detection technology, and legal basis for copyright takedown notices issued by Randy labs.
+
+This domain is operated by Randy labs, a copyright enforcement operator that sends takedown notices on behalf of rights holders. The site exists so recipients of a notice, the platforms that handle them, and the regulators that supervise them can verify the authorization, technology, and legal basis under which those notices are sent.
+
+The "copyright-abuses" in the domain name refers to the copyright abuses (piracy, unauthorized distribution, unauthorized streams) that Randy labs enforces against on behalf of rights holders. It does not refer to abuses of the DMCA system itself.
+
+Content here is descriptive, not legal advice. Tools provided are static and run entirely in the user's browser; uploaded data does not leave the user's machine.
+
+## Pages
+
+- [Home](https://copyright-abuses.com/): overview, summary of enforcement posture, and verification paths for recipients of a notice.
+- [Compliance](https://copyright-abuses.com/compliance): full posture with statutory references (authorization, substantive law, UK/EU GDPR), and contact rails for platforms, recipients, regulators, and courts.
+- [Tools](https://copyright-abuses.com/tools): static in-browser utilities for inspecting evidence and notices.
+- [HAR Viewer](https://copyright-abuses.com/tools/har-viewer): inspect HTTP Archive (.har) files locally in the browser. Native, single-file vanilla-JS implementation; no third-party runtime dependencies.
+
+## If you have received a notice
+
+- A copyright takedown notice under 17 U.S.C. § 512(c) is a formal request to a service provider to remove or disable access to material the sender claims infringes their copyright.
+- A counter-notice under § 512(g) is the recipient's procedural response when the takedown was a mistake or misidentification, or when the recipient has a valid license, fair-use claim, or other authorization. The address to send a counter-notice to Randy labs is published on the compliance page.
+- To verify a Randy labs notice, request mandate proof through the address published on the compliance page. Reference the notice ID in your request. Chain-of-authorization documentation is produced on demand.
+
+## Enforcement posture
+
+Three commitments every notice issued from this domain is required to satisfy.
+
+### Authorization
+
+Every notice is sent under a written mandate from the rights holder. Scope, territory, and dates are tracked and versioned. The chain-of-authorization documentation (mandate, scope, signatory) is produced on demand to platforms, intermediaries, hosts, ISPs, regulators, and courts.
+
+### Detection technology
+
+The content-identification pipeline produces a **content match**, not a person match. It contains:
+
+- No facial recognition.
+- No biometric identification of natural persons.
+- No profiling of viewers, subscribers, or any natural person.
+- No processing of GDPR Art. 9 special-category data.
+
+Match signals are derived from the broadcast stream itself: broadcaster logos and on-screen channel bugs; team jerseys, pitch colors, and other on-field visual cues; pitch-side advertising-board OCR; audio language, commentary, and subtitle correlation; stream quality, codec, and per-frame CMYK profile.
+
+### Legal basis
+
+Notices are drafted to the substantive law that applies to the recipient and the territory of the infringement:
+
+- **CDPA 1988** (United Kingdom): Copyright, Designs and Patents Act 1988, the primary UK statute.
+- **CRRA 2000** (Ireland): Copyright and Related Rights Act 2000.
+- **17 U.S.C. § 512** (United States): the DMCA safe-harbor framework, including the form and substance requirements of § 512(c)(3).
+- **DSA Art. 16** (European Union): notice form requirements where the recipient is covered by the EU Digital Services Act.
+
+UK/EU GDPR posture for the detection pipeline:
+
+- Processing outcome is a content match, not a person match. Therefore not biometric data within Art. 4(14) UK/EU GDPR.
+- Outside Art. 9; no special-category basis required.
+- Lawful basis: Art. 6(1)(f), legitimate interests in IP enforcement.
+- Aligned with ICO 2025 guidance on biometric and facial-recognition technologies, GDPR Recital 51, and EDPB guidance on facial recognition.
+
+## Contact
+
+Public contact addresses are published on the compliance page (https://copyright-abuses.com/compliance) only, and are rendered as images to deter automated scraping by abuse-mail-list operators. Use the address that appears under the category that fits the request:
+
+- Platforms and intermediaries requesting authorization proof
+- Notice recipients filing counter-notices or rebuttals
+- Regulators and courts sending formal correspondence
+
+Each Randy labs notice also contains the appropriate reply address in its header.
+
+## Optional
+
+- The site is a static Nuxt 3 SPA deployed to GitHub Pages on the copyright-abuses.com domain.
+- Each tool is implemented as an independent static mini-app under /tools/<slug>-app/, framed by a Nuxt page at /tools/<slug>. The HAR viewer is a single self-contained HTML file with no external runtime dependencies.
+- Source repository: https://github.com/randylabs/copyright-abuses.github.io
+- This file follows the llms.txt convention described at https://llmstxt.org/.
+- Statutory citations are simplified for readability; refer to the original instruments for authoritative text. Nothing on this site is legal advice.
