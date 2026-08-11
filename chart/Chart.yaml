@@ -1,0 +1,12 @@
+apiVersion: v2
+appVersion: "0.1.0"
+name: copyright-abuses
+description: Web Site for copyright-abuses
+type: application
+keywords:
+- dre
+- abuse
+- copyright
+sources:
+- https://github.com/randylabs/copyright-abuses.github.io
+version: 0.1.0

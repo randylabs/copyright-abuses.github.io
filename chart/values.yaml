@@ -1,0 +1,17 @@
+name: copyright-abuses
+namespace: common
+image: registry.randylabs.cloud/randylabsdev/copyright-abuses:latest
+pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: harbor
+port: 80
+
+# The VM-hosted Caddy reverse-proxies to this Service at <node-ip>:<nodePort>,
+# so it must be NodePort with a PINNED port (Caddy hardcodes it — never let k8s
+# auto-assign). nodePort must be free cluster-wide and in 30000-32767.
+service:
+  type: NodePort
+  nodePort: 30080
+
+envvars:
+  DEBUG: "false"

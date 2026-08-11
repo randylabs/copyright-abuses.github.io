@@ -1,0 +1,22 @@
+# Keep the build context small and deterministic.
+node_modules
+.output
+.nuxt
+.nitro
+.cache
+
+# The tracked `dist` is a broken symlink to a developer's machine — never copy it.
+dist
+
+.git
+.github
+
+# Local env / logs / OS cruft
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+.idea
+.vscode
