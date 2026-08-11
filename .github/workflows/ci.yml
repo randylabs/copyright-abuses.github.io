@@ -24,7 +24,7 @@ jobs:
       # Static Nuxt site: the build IS the gate (there are no unit tests). A
       # successful `generate` is what `bake` then packages into the image.
       - name: setup node
-        uses: actions/setup-node@v4 # pin to a SHA to match repo policy
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
           cache: npm
