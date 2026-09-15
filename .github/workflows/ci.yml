@@ -34,9 +34,17 @@ jobs:
         run: npm run generate
   bake:
     name: Bake
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
     if: github.ref == 'refs/heads/main'
-    needs: ci
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest-large
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu_arm64
     steps:
       - name: checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -56,14 +64,34 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: /tmp/docker-build
-          key: docker-build-main-${{ runner.os }}
-      - name: Bundle and push
-        id: bundle
+          key: docker-build-main-${{ runner.os }}-${{ matrix.arch }}
+      - name: Bundle and push ${{ matrix.arch }}
         run: |
           ref=${{ github.sha }}
+          repo=registry.randylabs.cloud/randylabsdev/copyright-abuses
+          docker buildx build --ulimit nofile=1024000:1024000 --platform ${{ matrix.platform }} . --tag ${repo}:${ref}-${{ matrix.arch }} --push
           image=registry.randylabs.cloud/randylabsdev/copyright-abuses:${ref}
           chart=0.0.0-${ref}
-          docker buildx build --platform linux/arm64,linux/amd64 . --tag ${image} --push
           helm package chart --app-version=${chart} --version=${chart}
           helm push copyright-abuses-${chart}.tgz oci://registry.randylabs.cloud/randylabsdev/charts
           echo "image=${image}" >> $GITHUB_OUTPUT
+  merge:
+    name: Merge multi-arch image
+    runs-on: [ubuntu-latest-large]
+    if: github.ref == 'refs/heads/main'
+    needs: bake
+    steps:
+      - name: login registry
+        run: |
+          echo "${OCI_REGISTRY_PASSWD}" | docker login registry.randylabs.cloud \
+            -u "${OCI_REGISTRY_USERNAME}" --password-stdin
+        env:
+          OCI_REGISTRY_USERNAME: ${{ secrets.OCI_REGISTRY_USERNAME }}
+          OCI_REGISTRY_PASSWD: ${{ secrets.OCI_REGISTRY_PASSWD }}
+      - name: Merge into one multi-arch image
+        run: |
+          ref=${{ github.sha }}
+          repo=registry.randylabs.cloud/randylabsdev/copyright-abuses
+          docker buildx imagetools create --tag ${repo}:${ref} \
+            ${repo}:${ref}-amd64 \
+            ${repo}:${ref}-arm64
