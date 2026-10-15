@@ -6,7 +6,7 @@ on:
 jobs:
   release:
     name: Promote tag
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: login registry
         run: |
