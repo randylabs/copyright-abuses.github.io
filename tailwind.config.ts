@@ -13,7 +13,7 @@ export default {
       colors: {
         'rl-blue': '#0066ff',
         'rl-green': '#00cc88',
-        'rl-purple': '#7c3aed',
+        'rl-purple': '#7c3aed', // unslop-ignore: Randy labs brand token
         'rl-amber': '#f59e0b',
         'rl-navy': '#0f172a',
         'rl-deep': '#0a0c14',

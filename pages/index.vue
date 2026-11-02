@@ -108,17 +108,20 @@ const tools = [
               What it is, your right to respond, and how to verify it.
             </h2>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <article
-              v-for="b in noticeBasics"
+          <ol class="max-w-[860px] divide-y divide-slate-200 border-y border-slate-200">
+            <li
+              v-for="(b, i) in noticeBasics"
               :key="b.label"
-              class="rounded-[20px] border-[1.5px] border-slate-200 bg-white p-8 hover:border-rl-blue hover:shadow-[0_8px_32px_rgba(0,102,255,0.06)] transition-all"
+              class="grid grid-cols-[3rem_1fr] md:grid-cols-[4rem_12rem_1fr] gap-x-6 gap-y-2 py-8"
             >
-              <div class="text-[10px] uppercase tracking-[1.5px] font-bold text-rl-blue mb-3">{{ b.label }}</div>
-              <h3 class="text-lg font-extrabold tracking-tight text-slate-900 mb-3 leading-snug">{{ b.title }}</h3>
-              <p class="text-sm text-slate-500 leading-relaxed">{{ b.body }}</p>
-            </article>
-          </div>
+              <span class="text-3xl font-black text-rl-blue leading-none tabular-nums" aria-hidden="true">{{ i + 1 }}</span>
+              <div>
+                <div class="text-[10px] uppercase tracking-[1.5px] font-bold text-rl-blue mb-2">{{ b.label }}</div>
+                <h3 class="text-lg font-extrabold tracking-tight text-slate-900 leading-snug">{{ b.title }}</h3>
+              </div>
+              <p class="col-start-2 md:col-start-3 text-sm text-slate-500 leading-relaxed">{{ b.body }}</p>
+            </li>
+          </ol>
         </div>
       </section>
 
@@ -135,11 +138,11 @@ const tools = [
             </p>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-8 mb-10"><!-- unslop-ignore: three posture pillars, borderless columns -->
             <div
               v-for="p in posturePillars"
               :key="p.title"
-              class="rounded-[20px] border-[1.5px] border-slate-200 bg-white p-8"
+              class="border-t-2 border-rl-blue pt-6"
             >
               <div class="text-[10px] uppercase tracking-[1.5px] font-bold text-rl-blue mb-3">{{ p.title }}</div>
               <h3 class="text-lg font-extrabold tracking-tight text-slate-900 mb-3 leading-snug">{{ p.headline }}</h3>
